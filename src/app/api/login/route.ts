@@ -263,8 +263,8 @@ export async function POST(request: NextRequest) {
     // 2. PARTICIPANT / PANELIST LOGIN FLOW (Event Based)
     // ---------------------------------------------------------
     else {
-      let { eventId, code } = body;
-      const { email, password } = body;
+      let { eventId, code, email } = body;
+      const { password } = body;
       
       // Strip # prefix from eventId if present (safety check)
       if (eventId && typeof eventId === 'string' && eventId.startsWith('#')) {
