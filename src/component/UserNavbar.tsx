@@ -310,17 +310,17 @@ export default function Navbar() {
         <div className="flex items-center gap-6">
           {/* --- DEVELOPER CREDIT BADGE --- */}
           <a
-            href="https://linkedin.com/in/abhaybansal001"
+            href="https://linkedin.com/in/yashdhiman001"
             target="_blank"
             rel="noreferrer"
             className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-900/50 border border-white/5 hover:border-white/10 hover:bg-zinc-900 transition-all group"
-            title="Developed by Abhay Bansal"
+            title="Developed by Yash Dhiman"
           >
             <Code2 className="w-3.5 h-3.5 text-zinc-500 group-hover:text-indigo-400 transition-colors" />
             <span className="text-[10px] text-zinc-500 font-mono uppercase tracking-wide group-hover:text-zinc-300 transition-colors">
               Dev_Op:{" "}
               <span className="font-bold text-zinc-300 group-hover:text-white">
-                Abhay
+                Yash
               </span>
             </span>
           </a>

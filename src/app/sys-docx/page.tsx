@@ -341,26 +341,26 @@ export default function AboutPage() {
               <p className="text-[10px] text-zinc-500 uppercase tracking-widest">
                 Architected By
               </p>
-              <p className="text-sm font-bold text-white">Abhay Bansal</p>
+              <p className="text-sm font-bold text-white">Yash Dhiman</p>
             </div>
             <div className="h-8 w-px bg-zinc-800 hidden md:block"></div>
             <div className="flex gap-4">
               <a
-                href="https://github.com/targter"
+                href="https://github.com/theyashdhiman04"
                 target="_blank"
                 className="text-zinc-600 hover:text-white transition-colors"
               >
                 <Github className="w-5 h-5" />
               </a>
               <a
-                href="https://linkedin.com/in/abhaybansal001"
+                href="https://linkedin.com/in/yashdhiman001"
                 target="_blank"
                 className="text-zinc-600 hover:text-blue-400 transition-colors"
               >
                 <Linkedin className="w-5 h-5" />
               </a>
               <a
-                href="mailto:abhaybansal@example.com"
+                href="mailto:theyashdhiman@gmail.com"
                 className="text-zinc-600 hover:text-teal-400 transition-colors"
               >
                 <Mail className="w-5 h-5" />

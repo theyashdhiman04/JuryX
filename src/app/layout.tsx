@@ -6,14 +6,14 @@ import Navbar from "@/component/UserNavbar";
 
 export const metadata: Metadata = {
   title: {
-    default: "JURYX | ABHAY BANSAL",
-    template: "%s | Abhay Bansal",
+    default: "JURYX | YASH DHIMAN",
+    template: "%s | Yash Dhiman",
   },
   description:
-    "BLOCKCHAIN-POWERED JURY MANAGEMENT SYSTEM BY ABHAY BANSAL. Streamline jury selection, enhance transparency, and ensure fair trials with our decentralized platform.",
+    "BLOCKCHAIN-POWERED JURY MANAGEMENT SYSTEM BY YASH DHIMAN. Streamline jury selection, enhance transparency, and ensure fair trials with our decentralized platform.",
   keywords: [
-    "Abhay Bansal",
-    "Abhay Bansal Portfolio",
+    "Yash Dhiman",
+    "Yash Dhiman Portfolio",
     "Full Stack Developer India",
     "AI Developer Portfolio",
     "Next.js Developer",
@@ -23,35 +23,35 @@ export const metadata: Metadata = {
     "Web Development Freelancer",
     "JavaScript Specialist",
   ],
-  authors: [{ name: "Abhay Bansal", url: "https://abhaybansal.in" }],
-  metadataBase: new URL("https://abhaybansal.in"),
+  authors: [{ name: "Yash Dhiman", url: "https://yashdhiman.in" }],
+  metadataBase: new URL("https://yashdhiman.in"),
   openGraph: {
-    title: "Abhay Bansal - Full Stack & AI Developer",
+    title: "Yash Dhiman - Full Stack & AI Developer",
     description:
-      "Creator of JuryX - Blockchain powered hackathon management platform. Explore Abhay's projects and skills in AI and full-stack development.",
-    url: "https://abhaybansal.in",
-    siteName: "Abhay Bansal Portfolio",
+      "Creator of JuryX - Blockchain powered hackathon management platform. Explore Yash's projects and skills in AI and full-stack development.",
+    url: "https://yashdhiman.in",
+    siteName: "Yash Dhiman Portfolio",
     type: "website",
     locale: "en_US",
     images: [
       {
-        url: "https://abhaybansal.in/abhay.jpg",
+        url: "https://yashdhiman.in/yash.jpg",
         width: 1200,
         height: 630,
-        alt: "JURYX | ABHAY BANSAL",
+        alt: "JURYX | YASH DHIMAN",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    site: "@Abhahbansal001",
-    creator: "@Abhaybansal001",
-    title: "Abhay Bansal - Full Stack AI Developer",
+    site: "@YashDhiman001",
+    creator: "@YashDhiman001",
+    title: "Yash Dhiman - Full Stack AI Developer",
     description: "Full Stack AI projects, 3D web, and professional portfolio.",
-    images: ["https://abhaybansal.in/abhay.jpg"],
+    images: ["https://yashdhiman.in/yash.jpg"],
   },
   alternates: {
-    canonical: "https://abhaybansal.in",
+    canonical: "https://yashdhiman.in",
   },
   icons: {
     icon: [
@@ -88,15 +88,15 @@ export default async function RootLayout({
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Person",
-    name: "Abhay Bansal",
+    name: "Yash Dhiman",
     jobTitle: "Full Stack & AI Developer",
-    url: "https://abhaybansal.in",
+    url: "https://yashdhiman.in",
     sameAs: [
-      "https://github.com/Targter",
-      "https://linkedin.com/in/abhaybansal001",
-      "https://x.com/abhaybansal001",
+      "https://github.com/theyashdhiman04",
+      "https://linkedin.com/in/yashdhiman001",
+      "https://x.com/yashdhiman001",
     ],
-    image: "https://abhaybansal.in/abhay.jpg",
+    image: "https://yashdhiman.in/yash.jpg",
     description:
       "Full Stack Developer specializing in AI and modern web technologies",
     address: {

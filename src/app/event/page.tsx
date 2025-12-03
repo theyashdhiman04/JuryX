@@ -140,7 +140,7 @@ export default function EventsPage() {
               Architected By
             </span>
             <span className="text-xs text-white font-bold tracking-tight group-hover:text-teal-400 transition-colors">
-              ABHAY BANSAL
+              YASH DHIMAN
             </span>
           </div>
 
@@ -148,7 +148,7 @@ export default function EventsPage() {
 
           <div className="flex gap-3">
             <a
-              href="https://abhaybansal.in/"
+              href="https://yashdhiman.in/"
               target="_blank"
               rel="noopener noreferrer"
               className="text-neutral-400 hover:text-white transition-colors hover:scale-110 transform"
@@ -157,7 +157,7 @@ export default function EventsPage() {
               <User className="w-5 h-5" />
             </a>
             <a
-              href="https://github.com/targter"
+              href="https://github.com/theyashdhiman04"
               target="_blank"
               rel="noopener noreferrer"
               className="text-neutral-400 hover:text-white transition-colors hover:scale-110 transform"
@@ -167,7 +167,7 @@ export default function EventsPage() {
             </a>
 
             <a
-              href="https://linkedin.com/in/abhaybansal001"
+              href="https://linkedin.com/in/yashdhiman001"
               target="_blank"
               rel="noopener noreferrer"
               className="text-neutral-400 hover:text-blue-400 transition-colors hover:scale-110 transform"
