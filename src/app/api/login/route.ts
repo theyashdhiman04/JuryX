@@ -235,18 +235,32 @@ export async function POST(request: NextRequest) {
       }
 
       // Find or Create User (Generic)
-      let user = await prisma.user.findUnique({ where: { email } });
+      let user;
+      try {
+        user = await prisma.user.findUnique({ where: { email } });
 
-      if (!user) {
-        // Create new generic user
-        user = await prisma.user.create({
-          data: { email, password }, // No role column here anymore
-        });
-      } else {
-        // Simple password check (In production, use bcrypt/argon2)
-        if (user.password !== password) {
-          return NextResponse.json({ error: "Invalid password" }, { status: 401 });
+        if (!user) {
+          // Create new generic user
+          user = await prisma.user.create({
+            data: { email, password }, // No role column here anymore
+          });
+        } else {
+          // Simple password check (In production, use bcrypt/argon2)
+          if (user.password !== password) {
+            return NextResponse.json({ error: "Invalid password" }, { status: 401 });
+          }
         }
+      } catch (dbError) {
+        console.error("[LOGIN API] Database error:", dbError);
+        const errorMessage = dbError instanceof Error ? dbError.message : "Database error";
+        return NextResponse.json(
+          { 
+            error: "Database connection failed",
+            message: process.env.NODE_ENV === "development" ? errorMessage : "Please check your database configuration",
+            hint: "Make sure DATABASE_URL is set correctly in Vercel environment variables"
+          },
+          { status: 503 }
+        );
       }
 
       // Set Cookies
@@ -375,7 +389,7 @@ export async function POST(request: NextRequest) {
   } catch (error: unknown) {
     console.error("[LOGIN API] Error caught:", error);
     console.error("[LOGIN API] Error type:", typeof error);
-    console.error("[LOGIN API] Error constructor:", error?.constructor?.name);
+    console.error("[LOGIN API] Error constructor:", error && typeof error === 'object' && 'constructor' in error ? (error as { constructor?: { name?: string } }).constructor?.name : 'unknown');
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     const errorStack = error instanceof Error ? error.stack : String(error);
     
@@ -394,9 +408,37 @@ export async function POST(request: NextRequest) {
       errorMeta: error && typeof error === 'object' && 'meta' in error ? (error as { meta: unknown }).meta : undefined 
     });
     
+    // Check if it's a database connection error
+    const isDatabaseError = 
+      errorMessage.includes("Can't reach database") ||
+      errorMessage.includes("P1001") ||
+      errorMessage.includes("P1003") ||
+      errorMessage.includes("connection") ||
+      (error && typeof error === 'object' && 'code' in error && String((error as { code: unknown }).code).startsWith('P'));
+    
+    const hasDatabaseUrl = !!process.env.DATABASE_URL;
+    
     // Return more specific error messages in development
     // Always return error details in development mode for debugging
     const isDevelopment = process.env.NODE_ENV === "development" || process.env.NODE_ENV !== "production";
+    
+    // If it's a database error, provide helpful message
+    if (isDatabaseError) {
+      return NextResponse.json(
+        { 
+          error: "Database connection failed",
+          message: hasDatabaseUrl 
+            ? "Database URL is configured but connection failed. Please check your DATABASE_URL format and ensure the database is accessible."
+            : "DATABASE_URL environment variable is not set. Please configure it in Vercel project settings.",
+          hint: "See DEPLOYMENT.md for setup instructions",
+          ...(isDevelopment && {
+            details: errorMessage,
+            code: error && typeof error === 'object' && 'code' in error ? (error as { code: unknown }).code : undefined,
+          })
+        },
+        { status: 503 }
+      );
+    }
     
     try {
       return NextResponse.json(
