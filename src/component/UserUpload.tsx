@@ -244,16 +244,26 @@ const UserUpload = () => {
     setUploadStatus("uploading");
 
     try {
-      // Create ZIP
-      const zipBlob = await createZip(fileList);
+      let zipBlob: Blob;
+      let zipFileName = "project.zip";
+
+      // Check if the uploaded file is already a zip file
+      if (fileList.length === 1 && fileList[0].name.toLowerCase().endsWith('.zip')) {
+        // User uploaded a zip file directly - use it as-is
+        zipBlob = fileList[0];
+        zipFileName = fileList[0].name;
+        console.log("Using uploaded zip file directly:", zipFileName);
+      } else {
+        // User uploaded a folder - create zip from files
+        zipBlob = await createZip(fileList);
+        console.log("Created zip from folder files");
+      }
 
       const formData = new FormData();
-      console.log("zipBlob:", zipBlob);
-      formData.append("project", zipBlob, "project.zip");
-      formData.append("userId", String(user?.id)); // Ensure this matches your backend expectation (ID vs Email)
-      formData.append("eventId", String(eventId)); // Include eventId for context
-      console.log("user.email:", user);
-      console.log("formData:", formData);
+      formData.append("project", zipBlob, zipFileName);
+      formData.append("userId", String(user?.id));
+      formData.append("eventId", String(eventId));
+      console.log("Uploading:", zipFileName);
 
       // Upload
       const response = await axios.post("/api/users/userFileUpload", formData, {
@@ -270,11 +280,27 @@ const UserUpload = () => {
       setTimeout(() => {
         router.push(`/event/${eventId}/user/dashboard`);
       }, 1000);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Upload failed:", error);
       setLoading(false);
       setUploadStatus("idle");
-      alert("Upload failed. Please try again.");
+      
+      let errorMessage = "Upload failed. Please try again.";
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: { error?: string; details?: string } } };
+        const errorData = axiosError.response?.data;
+        if (errorData?.error) {
+          errorMessage = errorData.error;
+          if (errorData.details) {
+            errorMessage += `\n${errorData.details}`;
+          }
+        } else if (axiosError.response?.status === 404) {
+          errorMessage = "You must create or join a team before uploading. Please go back and create/join a team first.";
+        } else if (axiosError.response?.status === 503) {
+          errorMessage = "File upload service is not configured. Please contact the administrator.";
+        }
+      }
+      alert(errorMessage);
     }
   };
 
@@ -283,8 +309,19 @@ const UserUpload = () => {
   // 1. Handle File Input Change (Click)
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      processFiles(Array.from(e.target.files));
+      const files = Array.from(e.target.files);
+      
+      // Check if user selected a single zip file
+      if (files.length === 1 && files[0].name.toLowerCase().endsWith('.zip')) {
+        // Single zip file - process directly
+        processFiles(files);
+      } else {
+        // Multiple files (folder) or non-zip file - process as folder
+        processFiles(files);
+      }
     }
+    // Reset input to allow selecting the same file again
+    e.target.value = '';
   };
 
   // 2. Handle Drag Events (Visuals)
@@ -306,12 +343,21 @@ const UserUpload = () => {
       setDragActive(false);
 
       if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-        // Convert FileList to Array
-        processFiles(Array.from(e.dataTransfer.files));
+        const files = Array.from(e.dataTransfer.files);
+        
+        // Check if dropped item is a zip file or folder
+        if (files.length === 1 && files[0].name.toLowerCase().endsWith('.zip')) {
+          // Single zip file dropped
+          processFiles(files);
+        } else {
+          // Folder or multiple files dropped
+          processFiles(files);
+        }
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [user, eventId]
-  ); // Dependencies needed if processFiles uses them directly, but here processFiles is inside component
+  ); // processFiles is defined in component scope and doesn't need to be in deps
 
   return (
     <div className="w-full h-full flex flex-col justify-between">
@@ -329,11 +375,10 @@ const UserUpload = () => {
           </div>
           <div>
             <h2 className="text-lg font-bold text-white tracking-tight">
-              Select Project Root
+              Upload Project
             </h2>
             <p className="text-zinc-400 text-xs max-w-[260px] mx-auto leading-relaxed">
-              Upload your project folder. We&apos;ll auto-compress and ignore
-              node_modules.
+              Upload a ZIP file or project folder. We&apos;ll handle the rest.
             </p>
           </div>
         </div>
@@ -357,10 +402,9 @@ const UserUpload = () => {
               className="hidden"
               onChange={handleInputChange}
               disabled={loading}
-              // @ts-expect-error - webkitdirectory is non-standard
-              webkitdirectory="true"
-              directory=""
-              multiple
+              accept=".zip,application/zip,application/x-zip-compressed"
+              // Primary: Accept zip files directly
+              // Folders can be dragged and dropped (handled in handleDrop)
             />
           </label>
 
@@ -422,10 +466,10 @@ const UserUpload = () => {
                   <span className="text-indigo-400 group-hover:text-indigo-300 transition-colors">
                     Click to browse
                   </span>{" "}
-                  or drag folder
+                  or drag & drop
                 </p>
                 <p className="text-[11px] text-zinc-500 mt-1.5 uppercase tracking-wide font-medium">
-                  Project Directory Only
+                  ZIP File or Project Folder
                 </p>
               </motion.div>
             )}
@@ -437,13 +481,10 @@ const UserUpload = () => {
           <FileCode className="w-4 h-4 text-indigo-500/70 mt-0.5 shrink-0" />
           <div className="text-[11px] text-zinc-400 leading-relaxed">
             <strong className="text-zinc-300 block mb-0.5">
-              Structure Requirement
+              Upload Options
             </strong>
-            Ensure the folder contains{" "}
-            <code className="bg-zinc-800 px-1 rounded text-zinc-200 border border-zinc-700">
-              package.json
-            </code>
-            . Heavy folders (node_modules, .git) are automatically excluded.
+            Upload a <code className="bg-zinc-800 px-1 rounded text-zinc-200 border border-zinc-700">.zip</code> file directly, or select a project folder. 
+            If uploading a folder, ensure it contains your project files. Heavy folders (node_modules, .git) are automatically excluded.
           </div>
         </div>
       </motion.div>

@@ -1277,6 +1277,7 @@ import {
   X,
   AlertCircle,
 } from "lucide-react";
+import { ConnectWallet } from "@/component/web3/ConnectWallet";
 
 // --- TYPES ---
 type UserProject = {
@@ -1614,6 +1615,11 @@ export default function PanelistDashboard() {
               Panelist Console
             </h1>
           </div>
+        </div>
+
+        {/* Wallet Connection */}
+        <div className="flex items-center gap-3">
+          <ConnectWallet />
         </div>
 
         {/* Round Selector Tabs */}

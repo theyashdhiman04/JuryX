@@ -167,7 +167,7 @@ export default function EventsPage() {
             </a>
 
             <a
-              href="https://linkedin.com/in/yashdhiman001"
+              href="https://www.linkedin.com/in/theyashdhiman04"
               target="_blank"
               rel="noopener noreferrer"
               className="text-neutral-400 hover:text-blue-400 transition-colors hover:scale-110 transform"

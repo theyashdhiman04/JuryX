@@ -353,7 +353,7 @@ export default function AboutPage() {
                 <Github className="w-5 h-5" />
               </a>
               <a
-                href="https://linkedin.com/in/yashdhiman001"
+                href="https://www.linkedin.com/in/theyashdhiman04"
                 target="_blank"
                 className="text-zinc-600 hover:text-blue-400 transition-colors"
               >

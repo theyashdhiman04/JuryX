@@ -191,11 +191,23 @@ import { cookies } from "next/headers";
 import { Role } from "@/generated/prisma";
 
 export async function POST(request: NextRequest) {
+  console.log("[LOGIN API] Request received");
   try {
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+      console.log("[LOGIN API] Body parsed:", { role: body.role, hasEventId: !!body.eventId, hasCode: !!body.code });
+    } catch (parseError) {
+      console.error("[LOGIN API] JSON parse error:", parseError);
+      return NextResponse.json(
+        { error: "Invalid request body" },
+        { status: 400 }
+      );
+    }
     
     // "USER" comes from frontend, map it to DB Enum "PARTICIPANT"
-    const requestedRoleStr = body.role; 
+    const requestedRoleStr = body.role;
+    console.log("[LOGIN API] Processing role:", requestedRoleStr); 
     let dbRole: Role = Role.ORGANIZER; // Default
 
     // Logic to determine DB role and redirect route
@@ -251,7 +263,24 @@ export async function POST(request: NextRequest) {
     // 2. PARTICIPANT / PANELIST LOGIN FLOW (Event Based)
     // ---------------------------------------------------------
     else {
-      const { eventId, code, email, password } = body;
+      let { eventId, code, email, password } = body;
+      
+      // Strip # prefix from eventId if present (safety check)
+      if (eventId && typeof eventId === 'string' && eventId.startsWith('#')) {
+        eventId = eventId.slice(1);
+      }
+      
+      // Normalize code (trim whitespace and convert to uppercase for case-insensitive comparison)
+      if (code && typeof code === 'string') {
+        code = code.trim().toUpperCase();
+      } else {
+        code = String(code || '').trim().toUpperCase();
+      }
+      
+      // Normalize email
+      if (email && typeof email === 'string') {
+        email = email.trim().toLowerCase();
+      }
       
       // Define route based on input
       if (dbRole === Role.PARTICIPANT) route = `/event/${eventId}/user`;
@@ -272,12 +301,21 @@ export async function POST(request: NextRequest) {
       }
 
       // Check codes based on the role they are trying to assume
+      // Normalize event codes for comparison (handle null and case sensitivity)
       if (dbRole === Role.PANELIST) {
-        if (event.panelistCode !== code) {
+        const eventCode = event.panelistCode ? String(event.panelistCode).trim().toUpperCase() : null;
+        if (!eventCode) {
+          return NextResponse.json({ error: "Panelist code not set for this event" }, { status: 400 });
+        }
+        if (eventCode !== code) {
           return NextResponse.json({ error: "Invalid panelist code" }, { status: 401 });
         }
       } else if (dbRole === Role.PARTICIPANT) {
-        if (event.participantCode !== code) {
+        const eventCode = event.participantCode ? String(event.participantCode).trim().toUpperCase() : null;
+        if (!eventCode) {
+          return NextResponse.json({ error: "Participant code not set for this event" }, { status: 400 });
+        }
+        if (eventCode !== code) {
           return NextResponse.json({ error: "Invalid participant code" }, { status: 401 });
         }
       }
@@ -310,15 +348,15 @@ export async function POST(request: NextRequest) {
           // SECURITY FIX: 
           // If the new role is PANELIST, force them out of any team (set teamId to null).
           // If the new role is PARTICIPANT, leave teamId alone (undefined).
-          teamId: dbRole === 'PANELIST' ? null : undefined 
+          teamId: dbRole === Role.PANELIST ? null : undefined 
         },
         create: {
           userId: user.id,
           eventId: eventId,
           role: dbRole,
           // New entries have no team yet
-          teamId: null 
-  },
+          teamId: null,
+        },
       });
 
       // Set Cookies
@@ -333,12 +371,52 @@ export async function POST(request: NextRequest) {
       });
     }
 
-  } catch (error) {
-    console.error("Login error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+  } catch (error: any) {
+    console.error("[LOGIN API] Error caught:", error);
+    console.error("[LOGIN API] Error type:", typeof error);
+    console.error("[LOGIN API] Error constructor:", error?.constructor?.name);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorStack = error instanceof Error ? error.stack : String(error);
+    
+    // Log Prisma-specific errors
+    if (error?.code) {
+      console.error("Prisma error code:", error.code);
+    }
+    if (error?.meta) {
+      console.error("Prisma error meta:", error.meta);
+    }
+    
+    console.error("Error details:", { 
+      errorMessage, 
+      errorStack,
+      errorCode: error?.code,
+      errorMeta: error?.meta 
+    });
+    
+    // Return more specific error messages in development
+    // Always return error details in development mode for debugging
+    const isDevelopment = process.env.NODE_ENV === "development" || process.env.NODE_ENV !== "production";
+    
+    try {
+      return NextResponse.json(
+        { 
+          error: "Internal server error", 
+          ...(isDevelopment && {
+            details: errorMessage,
+            code: error?.code,
+            message: errorMessage
+          })
+        },
+        { status: 500 }
+      );
+    } catch (responseError) {
+      // If we can't create a JSON response, log and return a plain text error
+      console.error("Failed to create error response:", responseError);
+      return new NextResponse(
+        `Internal server error: ${errorMessage}`,
+        { status: 500, headers: { "Content-Type": "text/plain" } }
+      );
+    }
   }
 }
 

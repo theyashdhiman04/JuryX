@@ -70,15 +70,16 @@ export default function Login() {
       } else if (role === "PANELIST") {
         setEmail("yash-panel@mail");
         setPassword("yash");
-        setCode("696049"); // Dummy Panelist Code
-        // Only set default ID if URL didn't provide one
-        setEventId((prev) => prev || "cmif6ebw80000oa3gy5rd8htg");
+        // Using real event codes from "Hackathon" event - update with your event's codes
+        setCode("4B9B5D"); // Panelist code for Hackathon event
+        setEventId((prev) => prev || "cmipuob9u0000j5jo35m6uewj"); // Hackathon event ID
       } else {
-        // USER
+        // USER (PARTICIPANT)
         setEmail("yash-participant@mail");
         setPassword("yash");
-        setCode("B3526C"); // Dummy Participant Code
-        setEventId((prev) => prev || "cmif6ebw80000oa3gy5rd8htg");
+        // Using real event codes from "Hackathon" event - update with your event's codes
+        setCode("C140E6"); // Participant code for Hackathon event
+        setEventId((prev) => prev || "cmipuob9u0000j5jo35m6uewj"); // Hackathon event ID
       }
     };
 
@@ -111,9 +112,11 @@ export default function Login() {
           loginData: { email, password, role },
         };
       } else {
+        // Strip # prefix from eventId if present
+        const cleanEventId = eventId.startsWith('#') ? eventId.slice(1) : eventId;
         payload = {
           role,
-          eventId,
+          eventId: cleanEventId,
           code,
           email,
           password,
@@ -122,13 +125,17 @@ export default function Login() {
 
       const response = await axios.post("/api/login", payload);
       const userData = response.data.user;
-      console.log("lognin response:", response.data);
+      console.log("Login response:", response.data);
+
+      if (!userData) {
+        throw new Error("Invalid response from server");
+      }
 
       // Update Global Store
       setUser({
         id: userData.id,
         email: userData.email,
-        role: response.data.dbRole,
+        role: response.data.dbRole || role,
         eventId: eventId || response.data.eventId || "",
         isPublic: response.data.isPublic || false,
       });
@@ -138,16 +145,40 @@ export default function Login() {
         localStorage.removeItem("selectedEventId");
       }
 
-      router.push(response.data.route);
-    } catch (err: unknown) {
-      console.error(err);
-      if (err instanceof AxiosError) {
-        setError(
-          err.response?.data?.message ||
-            "Login failed. Please check your credentials."
-        );
+      // Navigate to the route returned by the server
+      const route = response.data.route;
+      if (route) {
+        console.log("Navigating to:", route);
+        router.push(route);
       } else {
-        setError("Login failed. Please check your credentials.");
+        throw new Error("No route provided by server");
+      }
+    } catch (err: unknown) {
+      console.error("Login error:", err);
+      if (err instanceof AxiosError) {
+        const responseData = err.response?.data;
+        console.error("Error response data:", responseData);
+        console.error("Error status:", err.response?.status);
+        console.error("Error headers:", err.response?.headers);
+        
+        // Try to extract error message from various possible locations
+        const errorMessage = 
+          responseData?.error || 
+          responseData?.details || 
+          responseData?.message || 
+          err.message || 
+          `Server error (${err.response?.status || 'unknown'}): ${JSON.stringify(responseData || {})}`;
+        
+        setError(errorMessage);
+        console.error("Error details:", {
+          status: err.response?.status,
+          data: responseData,
+          message: errorMessage
+        });
+      } else {
+        const errorMessage = err instanceof Error ? err.message : "Login failed. Please check your credentials.";
+        setError(errorMessage);
+        console.error("Non-Axios error:", err);
       }
     } finally {
       setIsLoading(false);

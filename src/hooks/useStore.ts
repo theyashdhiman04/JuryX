@@ -53,3 +53,39 @@ export const useUserDetails = create<UserStore>((set) => ({
   setUser: (user) => set({ user }),
   clearUser: () => set({ user: null }),
 }))
+
+// Web3 Wallet Store
+type Web3Store = {
+  address: string | null;
+  isConnected: boolean;
+  chainId: number | null;
+  provider: any | null;
+  signer: any | null;
+  setAddress: (address: string | null) => void;
+  setIsConnected: (isConnected: boolean) => void;
+  setChainId: (chainId: number | null) => void;
+  setProvider: (provider: any | null) => void;
+  setSigner: (signer: any | null) => void;
+  reset: () => void;
+};
+
+export const useWeb3Store = create<Web3Store>((set) => ({
+  address: null,
+  isConnected: false,
+  chainId: null,
+  provider: null,
+  signer: null,
+  setAddress: (address) => set({ address }),
+  setIsConnected: (isConnected) => set({ isConnected }),
+  setChainId: (chainId) => set({ chainId }),
+  setProvider: (provider) => set({ provider }),
+  setSigner: (signer) => set({ signer }),
+  reset: () =>
+    set({
+      address: null,
+      isConnected: false,
+      chainId: null,
+      provider: null,
+      signer: null,
+    }),
+}));

@@ -17,6 +17,7 @@ import {
   Box,
   User,
 } from "lucide-react";
+import { ConnectWallet } from "@/component/web3/ConnectWallet";
 
 const HomePage: React.FC = () => {
   const router = useRouter();
@@ -138,6 +139,16 @@ const HomePage: React.FC = () => {
               System Docs
               <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
             </button>
+          </motion.div>
+
+          {/* Web3 Wallet Connection */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.7 }}
+            className="mt-6 flex justify-center"
+          >
+            <ConnectWallet />
           </motion.div>
         </div>
       </section>
@@ -261,7 +272,7 @@ const HomePage: React.FC = () => {
                 <Github className="w-4 h-4" />
               </a>
               <a
-                href="https://linkedin.com/in/yashdhiman001"
+                href="https://www.linkedin.com/in/theyashdhiman04"
                 target="_blank"
                 className="text-zinc-600 hover:text-blue-400 transition-colors"
               >

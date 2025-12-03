@@ -1,5 +1,5 @@
 // import dedent from "dedent";
-export default {
+const Lookup = {
   SIGNIN_HEADING: "Continue With Bolt.New 2.0",
   SIGNIN_SUBHEADING:
     "To use Bolt you must log into an existing account or create one.",
@@ -62,3 +62,5 @@ export default {
   },
 
 };
+
+export default Lookup;

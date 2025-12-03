@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 // import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/component/auth/AuthProvider";
+import { Web3Provider } from "@/component/web3/Web3Provider";
 import Navbar from "@/component/UserNavbar";
 
 export const metadata: Metadata = {
@@ -53,24 +54,6 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://yashdhiman.in",
   },
-  icons: {
-    icon: [
-      { url: "/favicon.ico" },
-      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-    ],
-    shortcut: ["/favicon.ico"],
-    apple: [
-      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
-    ],
-    other: [
-      {
-        rel: "mask-icon",
-        url: "/globe.svg",
-        color: "#5bbad5",
-      },
-    ],
-  },
   manifest: "/site.webmanifest",
 };
 
@@ -93,7 +76,7 @@ export default async function RootLayout({
     url: "https://yashdhiman.in",
     sameAs: [
       "https://github.com/theyashdhiman04",
-      "https://linkedin.com/in/yashdhiman001",
+      "https://www.linkedin.com/in/theyashdhiman04",
       "https://x.com/yashdhiman001",
     ],
     image: "https://yashdhiman.in/yash.jpg",
@@ -119,6 +102,7 @@ export default async function RootLayout({
     <html lang="en">
       {/* ${geistSans.variable} ${geistMono.variable} */}
       <head>
+        <link rel="icon" href="data:," />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -126,10 +110,12 @@ export default async function RootLayout({
       </head>
       <body className={` antialiased`}>
         <AuthProvider>
-          <div className="">
-            <Navbar />
-          </div>
-          {children}{" "}
+          <Web3Provider>
+            <div className="">
+              <Navbar />
+            </div>
+            {children}{" "}
+          </Web3Provider>
         </AuthProvider>
       </body>
     </html>

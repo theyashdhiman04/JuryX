@@ -498,7 +498,12 @@ import { motion, AnimatePresence } from "framer-motion";
 interface Event {
   id: string;
   name: string;
-  organizerId: string;
+  description?: string | null;
+  organizerId?: string;
+  createdAt?: string;
+  isActive?: boolean;
+  participantCode?: string | null;
+  panelistCode?: string | null;
 }
 
 interface Round {
@@ -552,6 +557,7 @@ export default function OrganizerPage() {
 
   useEffect(() => {
     fetchEvents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, getEvents.length]);
 
   // --- 2. Fetch Rounds & Codes when Event Selected ---
@@ -587,18 +593,44 @@ export default function OrganizerPage() {
       // Reset edit state
       setEditingId(null);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedEvent]);
 
   // --- 3. API Actions ---
 
   const createEvent = async () => {
-    if (!user || !eventName) return;
-    const res = await axios.post("/api/organizers/events", {
-      name: eventName,
-      organizerId: user.id,
-    });
-    setgetEvents([...getEvents, res.data]);
-    setEventName("");
+    if (!user || !eventName.trim()) {
+      alert("Please enter an event name");
+      return;
+    }
+    try {
+      const res = await axios.post("/api/organizers/events", {
+        name: eventName.trim(),
+        organizerId: Number(user.id), // Ensure it's a number
+      });
+      console.log("Event creation response:", res.data);
+      // The API returns { message, event }, so we need res.data.event
+      if (res.data.event) {
+        // Refresh the events list to get the updated list
+        await fetchEvents();
+        setEventName("");
+        alert("Event created successfully!");
+      } else {
+        console.error("Unexpected response format:", res.data);
+        alert("Event created but failed to update list. Please refresh.");
+        await fetchEvents(); // Try to refresh anyway
+      }
+    } catch (error: unknown) {
+      console.error("Error creating event:", error);
+      let errorMessage = "Failed to create event";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null && 'response' in error) {
+        const axiosError = error as { response?: { data?: { error?: string } } };
+        errorMessage = axiosError.response?.data?.error || errorMessage;
+      }
+      alert(`Failed to create event: ${errorMessage}`);
+    }
   };
 
   const createRound = async () => {

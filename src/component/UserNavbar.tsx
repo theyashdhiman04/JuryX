@@ -231,6 +231,7 @@ import {
   Terminal,
   Code2,
 } from "lucide-react";
+import { ConnectWallet } from "@/component/web3/ConnectWallet";
 
 export default function Navbar() {
   const { user, clearUser } = useUserDetails();
@@ -310,7 +311,7 @@ export default function Navbar() {
         <div className="flex items-center gap-6">
           {/* --- DEVELOPER CREDIT BADGE --- */}
           <a
-            href="https://linkedin.com/in/yashdhiman001"
+            href="https://www.linkedin.com/in/theyashdhiman04"
             target="_blank"
             rel="noreferrer"
             className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-900/50 border border-white/5 hover:border-white/10 hover:bg-zinc-900 transition-all group"
@@ -324,6 +325,14 @@ export default function Navbar() {
               </span>
             </span>
           </a>
+
+          {/* Separator */}
+          <div className="h-6 w-px bg-zinc-800 hidden md:block" />
+
+          {/* Web3 Wallet Connection */}
+          <div className="hidden sm:block">
+            <ConnectWallet />
+          </div>
 
           {/* Separator */}
           <div className="h-6 w-px bg-zinc-800 hidden md:block" />

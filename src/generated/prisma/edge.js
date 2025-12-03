@@ -181,7 +181,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "F:\\IMP-PROJECT\\HACKATHON-BLOCKCHAIN\\JURYX\\src\\generated\\prisma",
+      "value": "/home/theyashdhiman/Desktop/JuryX/JURYX-BLOCKCHAIN/src/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -190,12 +190,12 @@ const config = {
     "binaryTargets": [
       {
         "fromEnvVar": null,
-        "value": "windows",
+        "value": "debian-openssl-3.0.x",
         "native": true
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "F:\\IMP-PROJECT\\HACKATHON-BLOCKCHAIN\\JURYX\\prisma\\schema.prisma",
+    "sourceFilePath": "/home/theyashdhiman/Desktop/JuryX/JURYX-BLOCKCHAIN/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
