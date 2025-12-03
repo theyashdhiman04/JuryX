@@ -1,12 +1,17 @@
 "use client";
 
 import { useWeb3Store } from "@/hooks/useStore";
-import { BrowserProvider, ethers } from "ethers";
+import { BrowserProvider } from "ethers";
 import { useCallback } from "react";
 
 declare global {
   interface Window {
-    ethereum?: any;
+    ethereum?: {
+      request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
+      on: (event: string, handler: (accounts: string[]) => void) => void;
+      removeListener: (event: string, handler: (accounts: string[]) => void) => void;
+      chainId?: string;
+    };
   }
 }
 
@@ -85,7 +90,7 @@ export function useWeb3() {
           method: "wallet_switchEthereumChain",
           params: [{ chainId: `0x${chainId.toString(16)}` }],
         });
-      } catch (error: any) {
+      } catch (error: unknown) {
         // If chain doesn't exist, try to add it
         if (error.code === 4902) {
           throw new Error("Network not found. Please add it manually.");

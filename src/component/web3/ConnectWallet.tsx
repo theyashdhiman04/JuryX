@@ -8,7 +8,12 @@ import { Wallet, Copy, Check, ExternalLink, AlertCircle } from "lucide-react";
 
 declare global {
   interface Window {
-    ethereum?: any;
+    ethereum?: {
+      request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
+      on: (event: string, handler: (accounts: string[]) => void) => void;
+      removeListener: (event: string, handler: (accounts: string[]) => void) => void;
+      chainId?: string;
+    };
   }
 }
 
@@ -52,9 +57,9 @@ export function ConnectWallet() {
       setAddress(address);
       setIsConnected(true);
       setChainId(Number(network.chainId));
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error connecting wallet:", err);
-      if (err.code === 4001) {
+      if (err && typeof err === 'object' && 'code' in err && err.code === 4001) {
         setError("Connection rejected by user");
       } else {
         setError("Failed to connect wallet. Please try again.");

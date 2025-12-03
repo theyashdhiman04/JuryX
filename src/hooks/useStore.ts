@@ -1,4 +1,5 @@
 import {create} from "zustand"
+import { BrowserProvider } from "ethers";
 
 type UploadStore = {
     files: File[];
@@ -59,13 +60,13 @@ type Web3Store = {
   address: string | null;
   isConnected: boolean;
   chainId: number | null;
-  provider: any | null;
-  signer: any | null;
+  provider: BrowserProvider | null;
+  signer: unknown | null;
   setAddress: (address: string | null) => void;
   setIsConnected: (isConnected: boolean) => void;
   setChainId: (chainId: number | null) => void;
-  setProvider: (provider: any | null) => void;
-  setSigner: (signer: any | null) => void;
+  setProvider: (provider: BrowserProvider | null) => void;
+  setSigner: (signer: unknown | null) => void;
   reset: () => void;
 };
 

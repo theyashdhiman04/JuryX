@@ -270,7 +270,7 @@ import { useUploadStore, useUserDetails } from "@/hooks/useStore";
 import { unzipFromUrl } from "@/libs/unzip-utils";
 import axios from "axios";
 import { motion } from "framer-motion";
-import { Code2, Eye, Globe, RefreshCw, Search } from "lucide-react";
+import { Code2, Eye, Search } from "lucide-react";
 import { ArrowLeft, TerminalSquare } from "lucide-react";
 import { Resizable } from "react-resizable";
 import "react-resizable/css/styles.css";
@@ -792,7 +792,7 @@ const Page = () => {
                 code: JSON.stringify(pkgJson, null, 2),
                 hidden: false,
               };
-            } catch (e) {
+            } catch {
               console.warn("Could not parse package.json, creating new one");
               filesObj["/package.json"] = {
                 code: JSON.stringify({

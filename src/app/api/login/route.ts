@@ -263,7 +263,7 @@ export async function POST(request: NextRequest) {
     // 2. PARTICIPANT / PANELIST LOGIN FLOW (Event Based)
     // ---------------------------------------------------------
     else {
-      let { eventId, code, email, password } = body;
+      const { eventId, code, email, password } = body;
       
       // Strip # prefix from eventId if present (safety check)
       if (eventId && typeof eventId === 'string' && eventId.startsWith('#')) {
@@ -371,7 +371,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[LOGIN API] Error caught:", error);
     console.error("[LOGIN API] Error type:", typeof error);
     console.error("[LOGIN API] Error constructor:", error?.constructor?.name);

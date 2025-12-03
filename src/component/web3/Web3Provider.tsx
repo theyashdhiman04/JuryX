@@ -6,7 +6,12 @@ import { useWeb3Store } from "@/hooks/useStore";
 
 declare global {
   interface Window {
-    ethereum?: any;
+    ethereum?: {
+      request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
+      on: (event: string, handler: (accounts: string[]) => void) => void;
+      removeListener: (event: string, handler: (accounts: string[]) => void) => void;
+      chainId?: string;
+    };
   }
 }
 
@@ -19,7 +24,7 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
     setSigner,
     reset,
   } = useWeb3Store();
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [, setIsInitialized] = useState(false);
 
   useEffect(() => {
     const initializeWeb3 = async () => {
