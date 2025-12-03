@@ -3,7 +3,8 @@
 
 import { PrismaClient } from "@/generated/prisma";
 
-// Create a singleton Prisma client instance
+// Create a singleton Prisma client instance for serverless environments
+// This prevents creating multiple instances in serverless functions (Vercel, AWS Lambda, etc.)
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
@@ -14,11 +15,9 @@ export const prisma =
     log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
   });
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
-
-// Test database connection
-prisma.$connect().catch((error) => {
-  console.error("❌ Database connection failed:", error);
-  console.error("💡 Make sure DATABASE_URL is set correctly in your environment variables");
-}); 
+// In serverless environments, we need to reuse the same instance
+// This works for both development and production
+if (!globalForPrisma.prisma) {
+  globalForPrisma.prisma = prisma;
+} 
 

@@ -90,5 +90,3 @@ export async function POST(req: NextRequest) {
   }
   }
 }
-  // Use the Edge runtime in production (optional, remove if using Node serverless)
-  export const config = { runtime: "edge" };
