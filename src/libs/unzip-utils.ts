@@ -45,10 +45,10 @@ export async function unzipFromUrl(zipUrl: string): Promise<Record<string, strin
       
       if (content !== undefined && content !== null) {
         // Ensure content is a string
-        files[entry.filename] = typeof content === 'string' 
-          ? content 
-          : content instanceof Blob
-          ? await content.text()
+        files[entry.filename] = typeof content === 'string'
+          ? content
+          : (content && typeof content === 'object' && 'text' in content && typeof (content as Blob).text === 'function')
+          ? await (content as Blob).text()
           : String(content);
       }
     } catch (error) {

@@ -380,18 +380,18 @@ export async function POST(request: NextRequest) {
     const errorStack = error instanceof Error ? error.stack : String(error);
     
     // Log Prisma-specific errors
-    if (error?.code) {
-      console.error("Prisma error code:", error.code);
+    if (error && typeof error === 'object' && 'code' in error) {
+      console.error("Prisma error code:", (error as { code: unknown }).code);
     }
-    if (error?.meta) {
-      console.error("Prisma error meta:", error.meta);
+    if (error && typeof error === 'object' && 'meta' in error) {
+      console.error("Prisma error meta:", (error as { meta: unknown }).meta);
     }
     
     console.error("Error details:", { 
       errorMessage, 
       errorStack,
-      errorCode: error?.code,
-      errorMeta: error?.meta 
+      errorCode: error && typeof error === 'object' && 'code' in error ? (error as { code: unknown }).code : undefined,
+      errorMeta: error && typeof error === 'object' && 'meta' in error ? (error as { meta: unknown }).meta : undefined 
     });
     
     // Return more specific error messages in development
@@ -404,7 +404,7 @@ export async function POST(request: NextRequest) {
           error: "Internal server error", 
           ...(isDevelopment && {
             details: errorMessage,
-            code: error?.code,
+            code: error && typeof error === 'object' && 'code' in error ? (error as { code: unknown }).code : undefined,
             message: errorMessage
           })
         },

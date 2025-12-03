@@ -287,7 +287,7 @@ const UserUpload = () => {
       
       let errorMessage = "Upload failed. Please try again.";
       if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response?: { data?: { error?: string; details?: string } } };
+        const axiosError = error as { response?: { status?: number; data?: { error?: string; details?: string } } };
         const errorData = axiosError.response?.data;
         if (errorData?.error) {
           errorMessage = errorData.error;

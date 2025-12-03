@@ -92,7 +92,7 @@ export function useWeb3() {
         });
       } catch (error: unknown) {
         // If chain doesn't exist, try to add it
-        if (error.code === 4902) {
+        if (error && typeof error === 'object' && 'code' in error && (error as { code: unknown }).code === 4902) {
           throw new Error("Network not found. Please add it manually.");
         }
         throw error;

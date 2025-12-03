@@ -61,12 +61,18 @@ type Web3Store = {
   isConnected: boolean;
   chainId: number | null;
   provider: BrowserProvider | null;
-  signer: unknown | null;
+  signer: { 
+    signMessage: (message: string) => Promise<string>;
+    sendTransaction: (tx: { to?: string; value?: bigint; data?: string }) => Promise<{ hash: string }>;
+  } | null;
   setAddress: (address: string | null) => void;
   setIsConnected: (isConnected: boolean) => void;
   setChainId: (chainId: number | null) => void;
   setProvider: (provider: BrowserProvider | null) => void;
-  setSigner: (signer: unknown | null) => void;
+  setSigner: (signer: { 
+    signMessage: (message: string) => Promise<string>;
+    sendTransaction: (tx: { to?: string; value?: bigint; data?: string }) => Promise<{ hash: string }>;
+  } | null) => void;
   reset: () => void;
 };
 
