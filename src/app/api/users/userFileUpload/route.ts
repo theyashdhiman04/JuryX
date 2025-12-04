@@ -20,12 +20,19 @@ function getStorageType(): StorageType {
     return "aws";
   }
 
-  // Check if we're on Vercel (has BLOB_READ_WRITE_TOKEN automatically)
-  if (process.env.BLOB_READ_WRITE_TOKEN || process.env.VERCEL) {
+  // Check if we're on Vercel AND has BLOB_READ_WRITE_TOKEN
+  // Vercel doesn't automatically provide this - it needs to be set manually
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
     return "vercel";
   }
+  
+  // If on Vercel but no blob token, we can't use local storage (serverless)
+  // So we'll try vercel anyway and handle the error gracefully
+  if (process.env.VERCEL) {
+    return "vercel"; // Will fail gracefully and fall back in catch block
+  }
 
-  // Fallback to local storage
+  // Fallback to local storage (only works in non-serverless environments)
   return "local";
 }
 
@@ -96,11 +103,18 @@ async function deleteFromLocalStorage(fileUrl: string): Promise<void> {
 }
 
 export async function POST(request: NextRequest) {
+  // Declare variables outside try block for catch block access
+  let eventId: string | null = null;
+  let userId: string | null = null;
+  let buffer: Buffer | null = null;
+  let team: { id: string; name: string; storageUrl: string | null } | null = null;
+  let safeTeamName: string = "";
+
   try {
     const formData = await request.formData();
     const file = formData.get("project") as File;
-    const userId = formData.get("userId") as string;
-    const eventId = formData.get("eventId") as string;
+    userId = formData.get("userId") as string;
+    eventId = formData.get("eventId") as string;
 
     if (!file || !userId || !eventId) {
       return NextResponse.json(
@@ -109,7 +123,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer());
+    // Handle shortened event ID (last 4 characters)
+    // Strip # prefix if present
+    if (eventId && eventId.startsWith('#')) {
+      eventId = eventId.slice(1);
+    }
+
+    // If eventId is short (4 chars or less), find the full event ID
+    if (eventId && eventId.length <= 4) {
+      const events = await prisma.event.findMany({
+        where: {
+          id: {
+            endsWith: eventId,
+          },
+        },
+        select: { id: true },
+      });
+      if (events.length === 1) {
+        eventId = events[0].id;
+      } else if (events.length === 0) {
+        return NextResponse.json(
+          { error: "Event not found" },
+          { status: 404 }
+        );
+      } else {
+        return NextResponse.json(
+          { error: "Multiple events found. Please use the full event ID." },
+          { status: 400 }
+        );
+      }
+    }
+
+    buffer = Buffer.from(await file.arrayBuffer());
     const storageType = getStorageType();
 
     // 1. Find the User's Team via EventRole
@@ -132,8 +177,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const team = eventRole.team;
-    const safeTeamName = team.name.replace(/[^a-zA-Z0-9]/g, "_");
+    team = eventRole.team;
+    safeTeamName = team.name.replace(/[^a-zA-Z0-9]/g, "_");
     const timestamp = Date.now();
     const fileName = `${eventId}/${safeTeamName}/${timestamp}-project.zip`;
 
@@ -191,11 +236,24 @@ export async function POST(request: NextRequest) {
       }
 
       case "vercel": {
-        const blob = await put(fileName, buffer, {
-          access: "public",
-          contentType: file.type,
-        });
-        fileUrl = blob.url;
+        if (!process.env.BLOB_READ_WRITE_TOKEN) {
+          // On Vercel without blob token, we can't use local storage
+          // So we'll throw an error that will be caught and handled
+          throw new Error("BLOB_READ_WRITE_TOKEN is not configured");
+        }
+        try {
+          const blob = await put(fileName, buffer, {
+            access: "public",
+            contentType: file.type,
+          });
+          fileUrl = blob.url;
+        } catch (blobError) {
+          // Re-throw with more context
+          if (blobError instanceof Error && blobError.message.includes("token")) {
+            throw new Error("BLOB_READ_WRITE_TOKEN is not configured or invalid");
+          }
+          throw blobError;
+        }
         break;
       }
 
@@ -224,6 +282,49 @@ export async function POST(request: NextRequest) {
 
   } catch (err) {
     console.error("Upload error:", err);
+    
+    // If Vercel Blob fails and we're NOT on Vercel, try local storage as fallback
+    if (err instanceof Error && 
+        (err.message.includes("BLOB_READ_WRITE_TOKEN") || err.message.includes("No token found")) && 
+        !process.env.VERCEL &&
+        eventId && 
+        buffer && 
+        team && 
+        safeTeamName) {
+      try {
+        console.log("Falling back to local storage...");
+        const fileName = `${eventId}/${safeTeamName}/${Date.now()}-project.zip`;
+        const fileUrl = await saveToLocalStorage(buffer, fileName);
+        
+        // Update team storage URL
+        await prisma.team.update({
+          where: { id: team.id },
+          data: { storageUrl: fileUrl },
+        });
+        
+        return NextResponse.json({ 
+          success: true, 
+          url: fileUrl,
+          storageType: "local",
+          message: "Uploaded using local storage"
+        });
+      } catch (fallbackErr) {
+        console.error("Fallback upload also failed:", fallbackErr);
+      }
+    }
+    
+    // Provide helpful error message for Vercel Blob configuration
+    if (err instanceof Error && err.message.includes("BLOB_READ_WRITE_TOKEN")) {
+      return NextResponse.json(
+        { 
+          error: "Storage not configured",
+          details: "BLOB_READ_WRITE_TOKEN environment variable is not set. Please configure Vercel Blob storage in your Vercel project settings.",
+          hint: "Go to Vercel Dashboard → Your Project → Settings → Environment Variables → Add BLOB_READ_WRITE_TOKEN"
+        },
+        { status: 500 }
+      );
+    }
+    
     return NextResponse.json(
       { 
         error: "Failed to upload file",

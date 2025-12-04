@@ -307,9 +307,27 @@ export async function POST(request: NextRequest) {
 
       // A. Verify the Event and the Code
       // In the new schema, codes are directly on the Event model
-      const event = await prisma.event.findUnique({
+      // Try to find by full ID first, then by shortened ID (last 4 characters)
+      let event = await prisma.event.findUnique({
         where: { id: eventId },
       });
+
+      // If not found, try searching by shortened ID (last 4 characters)
+      if (!event && eventId.length <= 4) {
+        const events = await prisma.event.findMany({
+          where: {
+            id: {
+              endsWith: eventId,
+            },
+          },
+        });
+        if (events.length === 1) {
+          event = events[0];
+          eventId = event.id; // Update eventId to full ID for later use
+        } else if (events.length > 1) {
+          return NextResponse.json({ error: "Multiple events found with this ID. Please use the full event ID." }, { status: 400 });
+        }
+      }
 
       if (!event) {
         return NextResponse.json({ error: "Event not found" }, { status: 404 });

@@ -70,7 +70,7 @@ import { prisma } from '@/dbConfig/dbConfig';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const eventId = searchParams.get('eventId');
+  let eventId = searchParams.get('eventId');
   const userId = searchParams.get('userId');
 
   // Validate input
@@ -81,7 +81,38 @@ export async function GET(request: Request) {
     );
   }
 
+  // Handle shortened event ID (last 4 characters)
+  // Strip # prefix if present
+  if (eventId && eventId.startsWith('#')) {
+    eventId = eventId.slice(1);
+  }
+
   try {
+    // If eventId is short (4 chars or less), find the full event ID
+    if (eventId && eventId.length <= 4) {
+      const events = await prisma.event.findMany({
+        where: {
+          id: {
+            endsWith: eventId,
+          },
+        },
+        select: { id: true },
+      });
+      if (events.length === 1) {
+        eventId = events[0].id;
+      } else if (events.length === 0) {
+        return NextResponse.json(
+          { error: "Event not found" },
+          { status: 404 }
+        );
+      } else {
+        return NextResponse.json(
+          { error: "Multiple events found. Please use the full event ID." },
+          { status: 400 }
+        );
+      }
+    }
+
     // NEW SCHEMA QUERY:
     // We look for the unique EventRole for this specific User and Event.
     const userEventRole = await prisma.eventRole.findUnique({

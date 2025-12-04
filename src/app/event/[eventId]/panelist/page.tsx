@@ -1460,10 +1460,8 @@ export default function PanelistDashboard() {
     setPreviewLoading(true);
     setIsPreviewOpen(true);
 
-    // Determine ZIP URL (Team preferred, fallback to first participant)
-    const projectUrl =
-      team.storageUrl ||
-      team.participants.find((p) => p.storageUrl)?.storageUrl;
+    // Panelists should ONLY see team projects, not individual participant projects
+    const projectUrl = team.storageUrl;
 
     if (projectUrl) {
       try {
@@ -1569,7 +1567,8 @@ export default function PanelistDashboard() {
   }, [teams, searchQuery]);
 
   const hasProjectSubmission = (team: Team) => {
-    return team.storageUrl || team.participants.some((p) => p.storageUrl);
+    // Panelists should ONLY see team projects, not individual participant projects
+    return !!team.storageUrl;
   };
 
   // --- Entry File Logic (Your Logic) ---

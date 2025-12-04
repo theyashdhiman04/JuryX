@@ -34,13 +34,46 @@ import { Prisma } from "@/generated/prisma";
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, eventId, userId } = await req.json();
+    const body = await req.json();
+    const { name, userId } = body;
+    let { eventId } = body;
 
     if (!name || !eventId || !userId) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
+    }
+
+    // Handle shortened event ID (last 4 characters)
+    // Strip # prefix if present
+    if (eventId && typeof eventId === 'string' && eventId.startsWith('#')) {
+      eventId = eventId.slice(1);
+    }
+
+    // If eventId is short (4 chars or less), find the full event ID
+    if (eventId.length <= 4) {
+      const events = await prisma.event.findMany({
+        where: {
+          id: {
+            endsWith: eventId,
+          },
+        },
+        select: { id: true },
+      });
+      if (events.length === 1) {
+        eventId = events[0].id;
+      } else if (events.length === 0) {
+        return NextResponse.json(
+          { error: "Event not found" },
+          { status: 404 }
+        );
+      } else {
+        return NextResponse.json(
+          { error: "Multiple events found. Please use the full event ID." },
+          { status: 400 }
+        );
+      }
     }
     
     // Create the Team and immediately link the User's EventRole to it
